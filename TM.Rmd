@@ -86,9 +86,8 @@ reviewsDTM <- DocumentTermMatrix(ynhh_corpus4)
 # convert the document term matrix to a tidytext corpus
 reviewsDTM_tidy <- tidy(reviewsDTM)
 
-# I'm going to add my own custom stop words that I don't think will be
-# very informative in hospital reviews
-custom_stop_words <- tibble(word = c("hospit", "room", "week", "patient", "life", "day", "bed", "someon", "hour", "befor", "time", "floor", "peopl", "becaus", "tri", "star", "alway", "els", "realli", "veri", "pillow","checkpoint","report","jazeera"))
+
+custom_stop_words <- tibble(word = c("checkpoint","report","jazeera"))
 # remove stopwords
 reviewsDTM_tidy_cleaned <- reviewsDTM_tidy %>% # take our tidy dtm and...
     anti_join(stop_words, by = c("term" = "word")) %>% # remove English stopwords and...
@@ -106,48 +105,4 @@ cleaned_documents1 <- reviewsDTM_tidy_cleaned %>%
 ```{r}
 top_terms_by_topic_LDA(cleaned_documents1$terms, number_of_topics = 2)
 ```
-
-
-#TRT
-```{r}
-TR <- read_excel("C:/Users/LENOVO/Desktop/TR.xlsx")
-#original text cleaning
-ynhhreviews <- TR[-grep("\\b\\d+\\b", TR$text),]
-#this code function is to remove non text charachters. It is important if you are working on twitter texts.
-ynhhreviews$text <- sapply(ynhhreviews$text,function(row) iconv(row, "latin1", "ASCII", sub=""))
-# create a document term matrix to clean
-reviewsCorpus <- Corpus(VectorSource(ynhhreviews$text))
-#remove punctuation, numbers, lower upper case letters then stem words
-ynhh_corpus <- tm_map(reviewsCorpus, content_transformer(removePunctuation))
-
-ynhh_corpus2 <- tm_map(ynhh_corpus, content_transformer(removeNumbers))
-ynhh_corpus3 <- tm_map(ynhh_corpus2, content_transformer(stri_trans_tolower))
-ynhh_corpus4  <-  tm_map(ynhh_corpus3,stemDocument)
-
-reviewsDTM <- DocumentTermMatrix(ynhh_corpus4)
-
-# convert the document term matrix to a tidytext corpus
-reviewsDTM_tidy <- tidy(reviewsDTM)
-
-# I'm going to add my own custom stop words that I don't think will be
-# very informative in hospital reviews
-custom_stop_words <- tibble(word = c("hospit", "room", "week", "patient", "life", "day", "bed", "someon", "hour", "befor", "time", "floor", "peopl", "becaus", "tri", "star", "alway", "els", "realli", "veri", "pillow"))
-# remove stopwords
-reviewsDTM_tidy_cleaned <- reviewsDTM_tidy %>% # take our tidy dtm and...
-    anti_join(stop_words, by = c("term" = "word")) %>% # remove English stopwords and...
-    anti_join(custom_stop_words, by = c("term" = "word")) # remove my custom stopwords
-
-# reconstruct cleaned documents (so that each word shows up the correct number of times)
-cleaned_documents2 <- reviewsDTM_tidy_cleaned %>%
-    group_by(document) %>% 
-    mutate(terms = toString(rep(term, count))) %>%
-    select(document, terms) %>%
-    unique()
-
-```
-
-```{r}
-top_terms_by_topic_LDA(cleaned_documents2$terms, number_of_topics = 2)
-```
-
 
